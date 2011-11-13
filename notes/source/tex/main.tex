@@ -1,0 +1,114 @@
+\section{Graph Algorithms}
+
+\subsection{Breadth-First Search}
+
+\textbf{What it does:}
+\begin{itemize}
+    \item Finds the shortest path from a source vertex to any other vertex
+    \item Generates the set of all vertices connected to the source vertex
+\end{itemize}
+\textbf{Requirements:}
+\begin{itemize}
+    \item A queue, $Q$
+    \item A data structure, $S$
+    \item A source vertex, $v_0$
+\end{itemize}
+\textbf{Algorithm:}
+\begin{algorithmic}[1]
+    \STATE $Q$.enqueue$(v_0)$
+    \STATE $S$.add$(v_0)$
+    \WHILE {$Q$ is not empty}
+        \STATE $v \gets Q$.dequeue$()$
+        \FOR {every $n$ adjacent to $v$}
+            \IF {$n$ is not in $S$}
+                \STATE $Q$.enqueue$(n)$
+                \STATE $S$.add$(n)$
+            \ENDIF
+        \ENDFOR
+    \ENDWHILE
+\end{algorithmic}
+\textbf{Notes:}
+\begin{itemize}
+    \item A distance counter is easily added as a field in the vertex class
+    \item If the queue is replaced with a stack, this becomes a Depth-First Search
+    \item May only be used on a graph without edge weights
+\end{itemize}
+
+\subsection{Dijkstra's Algorithm}
+
+\textbf{What it does:}
+\begin{itemize}
+    \item Finds the path of least weight from a source vertex to any other vertex
+\end{itemize}
+\textbf{Requirements:}
+\begin{itemize}
+    \item A minimum-priority queue, $Q$
+    \item A data structure, $S$
+    \item A function $\delta(v)$ representing weight of path from source
+    \item A function $\epsilon(v_1, v_2)$ representing the weight of an edge
+    \item A source vertex, $v_0$
+\end{itemize}
+\textbf{Algorithm:}
+\begin{algorithmic}[1]
+    \STATE $\delta(v_0) \gets 0$
+    \STATE $\delta(v) \gets \infty$ for all other $v$
+    \STATE $Q$.enqueue$(v_0)$
+    \WHILE {$Q$ is not empty}
+        \STATE $v \gets Q$.dequeue$()$
+        \STATE $S$.add$(v)$
+        \FOR {every $n$ adjacent to $v$}
+            \IF {$n$ is not in $S$ and $\delta(v) + \epsilon(v, n) < \delta(n)$}
+                \STATE $Q$.remove$(n)$
+                \STATE $\delta(n) \gets \delta(v) + \epsilon(v, n)$
+                \STATE $Q$.enqueue$(n)$
+            \ENDIF
+        \ENDFOR
+    \ENDWHILE
+\end{algorithmic}
+\textbf{Notes:}
+\begin{itemize}
+    \item The functions $\delta$ and $\epsilon$ are easily added as a field in the vertex class
+    \item MAX\_INT (or its language-specific variant) may be used for $\infty$
+    \item May only be used on a graph with non-negative edge weights
+\end{itemize}
+
+\subsection{Bellman-Ford Algorithm}
+
+\textbf{What it does:}
+\begin{itemize}
+    \item Finds the path of least weight from a source vertex to any other vertex
+    \item Detects the existence of negative cycles in a graph
+\end{itemize}
+\textbf{Requirements:}
+\begin{itemize}
+    \item A set of vertices, $V$
+    \item A set of edges, $E$
+    \item A function $\delta(v)$ representing weight of path from source
+    \item A function $\omega(e)$ representing the weight of an edge
+    \item A source vertex, $v_0$
+\end{itemize}
+\textbf{Algorithm:}
+\begin{algorithmic}[1]
+    \STATE $\delta(v_0) \gets 0$
+    \STATE $\delta(v) \gets \infty$ for all other $v$
+    \FOR {$i = 1 \to |V|-1$}
+        \FOR {$e$ in $E$}
+            \STATE $u \gets e$.source
+            \STATE $v \gets e$.target
+            \IF {$\delta(u) + \omega(e) < \delta(v)$} 
+                \STATE $\delta(v) \gets \delta(u) + \omega(e)$
+            \ENDIF
+        \ENDFOR
+    \ENDFOR
+    \FOR {$e$ in $E$}
+        \STATE $u \gets e$.source
+        \STATE $v \gets e$.target
+        \IF {$\delta(u) + \omega(e) < \delta(v)$}
+            \STATE A negative cycle exists    
+        \ENDIF
+    \ENDFOR
+\end{algorithmic}
+\textbf{Notes:}
+\begin{itemize}
+    \item If a negative cycle exists in a graph, a path of least weight does not exist
+\end{itemize}
