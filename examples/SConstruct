@@ -1,0 +1,20 @@
+import os
+from glob import glob
+
+def GetName(path):
+    return os.path.split(path)[1].split('.')[0]
+
+env = Environment()
+env.VariantDir('build', 'source', duplicate = 0)
+
+javaPrograms = env.Glob(os.path.join('build', '*.java'))
+for file in javaPrograms:
+    env.Java('build', file)
+
+cppPrograms = env.Glob(os.path.join('build', '*.cpp'))
+for file in cppPrograms:
+    env.Program(file)
+
+cPrograms = env.Glob(os.path.join('build', '*.c'))
+for file in cPrograms:
+    env.Program(file)
