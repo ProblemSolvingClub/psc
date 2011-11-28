@@ -4,8 +4,8 @@ public class Main
 {
     public static void main(String[] args)
     {
-        int[] cycles = new int[1000000];
-        for (int i = 0; i < 1000000; i++)
+        int[] cycles = new int[1000001];
+        for (int i = 0; i < 1000001; i++)
             cycles[i] = -1;
         cycles[1] = 1;
         Scanner in = new Scanner(System.in);
@@ -13,26 +13,26 @@ public class Main
         {
             int i = in.nextInt();
             int j = in.nextInt();
-            int max = Max(i, j, cycles);
+            long max = Max(i, j, cycles);
             System.out.printf("%d %d %d\n", i, j, max);
         }
     }
 
-    public static int Max(int i, int j, int[] cycles)
+    public static long Max(int i, int j, int[] cycles)
     {
-        int max = 0;
+        long max = 0;
         for (int num = i; num <= j; num++)
         {
             cycle visited = new cycle();
-            int n = num;
+            long n = num;
             while (true)
             {
                 if (n < 1000000)
                 {
-                    if (cycles[n] != -1)
+                    if (cycles[(int)n] != -1)
                         break;
                     else
-                        visited.stack.add(new pair(n, 0));
+                        visited.stack.add(new pair((int)n, 0));
                 }
                 if (n % 2 == 0)
                     n = n >> 1;
@@ -40,7 +40,7 @@ public class Main
                     n = 3*n + 1;
                 visited.Increment();
             }
-            int toVisit = cycles[n]; 
+            int toVisit = cycles[(int)n]; 
             for (pair p : visited.stack)
                 cycles[p.num] = p.cycleLength+toVisit;
             if (max < cycles[num])
