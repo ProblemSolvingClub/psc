@@ -3,14 +3,18 @@ import java.util.*;
 public class Ukkonen {
 
     public static void main(String[] args) {
-        String testString = "BANANA";
-        Ukkonen stree = new Ukkonen(testString);
-        System.out.println("Hello, world!");
+        String[] testStrings = { "BANANA", "MISSISSIPPI", "DOESTHISTREEMAKESENSE" };
+        for (String testString : testStrings )
+        {
+            Ukkonen stree = new Ukkonen(testString);
+	        stree.getRoot().PrintPretty(testString, 1, testString.length(), "", true);
+        }
     }
 
     private String S;
     private Node root;
-    public Ukkonen(String S) {
+
+	public Ukkonen(String S) {
         this.S = S;
         this.root = new Node(0);
         int stringEnd = this.S.length();
@@ -51,6 +55,7 @@ public class Ukkonen {
 
             }
         } 
+        
     }
 
     public class Node {
@@ -76,6 +81,27 @@ public class Ukkonen {
         }
         public void AddEdge(Edge edgeFrom) {
             this.edgesFrom.add(edgeFrom);
+        }
+        public void PrintPretty(String fullString, int start, int end, String indent, boolean last)
+        {
+            System.out.print(indent);
+            if (last)
+            {
+                System.out.print("\\-");
+                indent += "  ";
+            }
+            else
+            {
+                System.out.print("|-");
+                indent += "| ";
+            }
+            System.out.println(fullString.substring(start - 1, end));
+            
+            for (int i = 0; i < edgesFrom.size(); i++ )
+            {
+            	Edge anEdge = edgesFrom.get(i);
+                anEdge.Target().PrintPretty(fullString, anEdge.Start(), anEdge.End(), indent, i == edgesFrom.size() - 1 );
+            }
         }
     }
 
@@ -106,5 +132,8 @@ public class Ukkonen {
             return this.target;
         }
     }
+    
+    public Node getRoot() {
+		return root;
+	}
 }
-
