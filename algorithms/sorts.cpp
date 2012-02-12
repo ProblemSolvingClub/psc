@@ -1,3 +1,9 @@
+/**
+ * Implements various ways of sorting a set.
+ * Quicksort is an efficient comparison-based sorting algorithm running in n*log(n).
+ * Radix and Counting sort are linear-time sorts for sets of positive integers.
+ **/
+
 #include <iostream>
 #include <vector>
 

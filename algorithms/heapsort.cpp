@@ -1,3 +1,7 @@
+/**
+ * Implementation of heapsort, which is an efficient sort utilizing a heap.
+ **/
+
 #include <vector>
 #include <iostream>
 #include <algorithm>

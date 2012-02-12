@@ -1,3 +1,8 @@
+/**
+ * Various ways of finding the contiguous subarray which sums to the max value.
+ * Includes the divide-and-conquer approach as well as the linear-time approach.
+ **/
+
 #include <iostream>
 #include <cstdio>
 #include <vector>

@@ -1,3 +1,12 @@
+/**
+ * Implements an algorithm for selecting the kth order statistic in linear time.
+ * This uses partitioning similar to what is seen in Quicksort, but the algorithm
+ * recurses only on one side, not both. A guaranteed-linear-time implementation
+ * would use the median-of-medians algorithm for selecting the partitioning pivot,
+ * but in practice random selection has the same expected running time and is far,
+ * far, far easier to program.
+ **/
+
 #include <iostream>
 #include <vector>
 #include <stdlib.h>

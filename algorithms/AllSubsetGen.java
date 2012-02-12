@@ -1,3 +1,9 @@
+/**
+ * Demonstrates the method of generating all subsets of a set, using a bitmask.
+ * The bitmask is incremented until all 2^n values have been generated, which
+ * are in turn used to generate every subset of the n-value set.
+ **/
+
 import java.util.*;
 
 public class AllSubsetGen {

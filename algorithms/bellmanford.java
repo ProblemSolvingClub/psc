@@ -1,3 +1,8 @@
+/**
+ * Implementation of the Bellman-Ford graph search for graphs with negative edges.
+ * Bellman-Ford also detects negative cycles, which is also useful.
+ **/
+
 import java.util.*;
 
 public class bellmanford {

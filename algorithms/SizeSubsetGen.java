@@ -1,3 +1,10 @@
+/**
+ * Code to generate all subsets of a certain size using bitmasks and snoob.
+ * Snoob stands for 'same number of one bits', and given a bitmask with k ones,
+ * will transform that bitmask into the next largest integer also containing
+ * k ones. Thus we can use this to generate all subsets of size k.
+ **/
+
 import java.util.*;
 
 public class SizeSubsetGen {

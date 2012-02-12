@@ -1,10 +1,11 @@
+/**
+ * Simple demonstration of the ideas behind the Monte Carlo method.
+ * In this case, we calculate the area of overlapping circles using Monte Carlo.
+ **/
+
 import java.util.*;
 import java.lang.*;
 
-/* *
- * Reads in a list of circles and calculates the area they cover
- * using the Monte Carlo method.
- * */
 public class montecarlo
 {
     public static void main(String[] args)
