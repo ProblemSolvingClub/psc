@@ -1,0 +1,5 @@
+import os
+env = Environment()
+env.VariantDir('build', 'source', duplicate = 0)
+env.PDF(target = 'build/main', source = Glob('build/document.tex'))
+
