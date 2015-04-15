@@ -5,7 +5,7 @@
 \usepackage{amsmath}
 \usepackage{courier}
 \usepackage[margin=0.5in]{geometry}
-\usepackage[hidelinks=true,pdftitle={University of Calgary C++ Codebook}]{hyperref}
+\usepackage[hidelinks=true,pdftitle={University of Calgary Team Reference Document 2015}]{hyperref}
 \usepackage{listings}
 \usepackage{multicol}
 \usepackage{parskip}
@@ -78,6 +78,10 @@ double ptToLine(PX p, PX v, PX x) {
 	// Closest point on line: p + v*dp(v, x-p)
 	return fabs(cp(v, x-p) / abs(v));
 }
+\end{lstlisting}
+\rx{Angle between vectors ($0$ to $\pi$)}
+\begin{lstlisting}
+Use fabs(arg(x/y))
 \end{lstlisting}
 &
 \rx{Intersection point of two lines}
@@ -412,67 +416,78 @@ stableMarriage(); // matching is in wPartner
 &
 \subsection{Max Flow (with Min Cut)}
 
-Edmonds-Karp algorithm.
+Dinic's algorithm.
 
-Complexity: $O\left(\min\left(VE^2, fE\right)\right)$ where $f$ is the maximum flow
-
-Note: The worst case performance is very rare and only happens with a specially crafted test case. Problem authors usually do not penalize you for using Edmonds-Karp over more efficient algorithms.
+Complexity: $O\left(\min\left(V^2E, fE\right)\right)$ where $f$ is the maximum flow
 
 \begin{lstlisting}
 typedef long long LL;
-typedef pair<int,LL> PT;
+const int SOURCE=0, SINK=1; // change if necessary
 
-vector<vector<int>> adj;
-vector<int> parent;
-unordered_map<int, unordered_map<int, LL>> cap; // or LL[][] if V is not too large
+struct edge {
+	int to, idx;
+	LL cap;
+};
+vector<vector<edge>> adj;
+vector<int> lvl, ptr;
 
 LL totalflow;
-bool runMaxFlow(int source, int sink) {
-	parent.assign(adj.size(), -1);
-	parent[source] = -2; // use different value to recognize min cut
-	queue<PT> bfs;
-	bfs.emplace(source, 1LL<<60); // must be larger than max flow
-	while (!bfs.empty()) {
-		PT t = bfs.front();
-		bfs.pop();
-		for (int j : adj[t.first]) {
-			if (cap[t.first][j] == 0 || parent[j] != -1) continue;
-			parent[j] = t.first;
-			LL f = min(t.second, cap[t.first][j]);
-			if (j == sink) {
-				while (j != source) {
-					int p = parent[j];
-					cap[p][j] -= f;
-					cap[j][p] += f;
-					j = p;
-				}
-				totalflow += f;
-				return true;
+
+LL dfs(int n, LL f) {
+	if (n == SINK) {
+		totalflow += f;
+		return f;
+	}
+	if (lvl[n] == lvl[SINK]) return 0;
+	while (ptr[n] < (int)adj[n].size()) {
+		edge& e = adj[n][ptr[n]];
+		ptr[n]++;
+		if (lvl[e.to] == lvl[n]+1 && e.cap > 0) {
+			LL nf = dfs(e.to, min(f, e.cap));
+			if (nf) {
+				e.cap -= nf;
+				adj[e.to][e.idx].cap += nf;
+				return nf;
 			}
-			bfs.emplace(j, f);
 		}
 	}
-	return false;
+	return 0;
+}
+bool runMaxFlow() {
+	lvl.assign(adj.size(), -1);
+	ptr.assign(adj.size(), 0);
+	lvl[SOURCE] = 0;
+	queue<int> bfs;
+	bfs.push(SOURCE);
+	while (!bfs.empty()) {
+		int t = bfs.front();
+		bfs.pop();
+		for (edge& e : adj[t]) {
+			if (lvl[e.to] != -1 || e.cap <= 0) continue;
+			lvl[e.to] = lvl[t]+1;
+			bfs.push(e.to);
+		}
+	}
+	if (lvl[SINK] == -1) return false;
+	while (dfs(SOURCE, 1LL<<60)) {}
+	return true;
 }
 void initMaxFlow(int nodes) {
 	totalflow = 0;
 	adj.clear(); adj.resize(nodes);
-	cap.clear(); // or memset if cap is an array
 }
 void addEdge(int a, int b, LL w) {
-	adj[a].push_back(b);
-	adj[b].push_back(a); // even without bidirectional edges
-	cap[a][b] = w;
-	//cap[b][a] = w; // if you want bidirectional edges
+	adj[a].push_back(edge{b, (int)adj[b].size(), w});
+	adj[b].push_back(edge{a, (int)adj[a].size()-1, 0});
 }
 \end{lstlisting}
 Example usage
 \begin{lstlisting}
 initMaxFlow(desired number of nodes); // nodes from 0 to N-1
 addEdge(0, 3, 123); // adds edge fron 0 to 3 with capacity 123
-while (runMaxFlow(source, sink)) {}
+while (runMaxFlow()) {}
 // The max flow is now in totalflow
-// The min cut: Nodes where parent[i] == -1 belong to the T
+// The min cut: Nodes where lvl[i] == -1 belong to the T
 // component, otherwise S
 \end{lstlisting}
 \end{tabular}
@@ -482,8 +497,6 @@ while (runMaxFlow(source, sink)) {}
 \subsection{Min Cost Max Flow}
 
 Edmonds-Karp with Bellman-Ford algorithm. Complexity: $O\left(\min\left(V^2E^2, fVE\right)\right)$ where $f$ is the maximum flow
-
-Note: The worst case performance is very rare and only happens with a specially crafted test case. Problem authors usually do not penalize you for using Edmonds-Karp with Bellman-Ford over more efficient algorithms. The Bellman-Ford part of this code is designed to exit early whenever possible.
 
 \begin{lstlisting}
 const int NODES = 101 // maximum number of nodes
@@ -672,7 +685,7 @@ int count(node *n, int x) {
 \end{lstlisting}
 \end{tabular}
 
-\subsection{KMP}
+\subsection{KMP and Z-function}
 
 Knuth-Morris-Pratt algorithm. Complexity: $O\left(m+n\right)$
 
@@ -680,6 +693,8 @@ This function returns a vector containing the zero-based index of the start of e
 
 For GNU C++, \texttt{strstr()} uses KMP, but \texttt{string.find()} in C++ and \texttt{String.indexOf()} in Java do not.
 
+Z-function complexity: $O\left(n\right)$. z[i] is the length of the longest common prefix between s and the suffix of s starting at i.
+\begin{tabular}{@{}p{9cm}p{9cm}@{}}
 \begin{lstlisting}
 template<class T>
 vector<int> KMP(T const& S, T const& K) {
@@ -689,7 +704,8 @@ vector<int> KMP(T const& S, T const& K) {
 	// Preprocess
 	for (int i = 1; i <= K.size(); i++) {
 		int pos = b[i - 1];
-		while (pos != -1 && K[pos] != K[i - 1]) pos = b[pos];
+		while (pos != -1 && K[pos] != K[i - 1])
+			pos = b[pos];
 		b[i] = pos + 1;
 	}
 
@@ -704,6 +720,35 @@ vector<int> KMP(T const& S, T const& K) {
 	return matches;
 }
 \end{lstlisting}
+&
+\begin{lstlisting}
+vector<int> z;
+void calcZ(string const& s) {
+	int n = s.size(), l = -1, r = -1;
+	z.assign(n, 0);
+	for (int i = 1; i < n; i++) {
+		if (i <= r) z[i] = min(z[i-l], r-i+1);
+		while (i+z[i] < n && s[i+z[i]] == s[z[i]]) z[i]++;
+		if (i+z[i]-1 > r) {
+			l = i;
+			r = i+z[i]-1;
+		}
+	}
+}
+\end{lstlisting}
+\end{tabular}
+
+Example of KMP preprocessing array b[i] and Z-function z[i]:
+
+{
+\fontfamily{\ttdefault}\selectfont
+\begin{tabular}{llllllllllllllllll}
+i    & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10&11 &12 &13 &14 &15 &16 \\
+K[i] & f & i & x & p & f & i & x & f & i & x & p & s & u & f & i & x &\textbackslash 0 \\
+b[i] & -1& 0 & 0 & 0 & 0 & 1 & 2 & 3 & 1 & 2 & 3 & 4 & 0 & 0 & 1 & 2 & 3 \\
+z[i] & 0& 0 & 0 & 0 & 3 & 0 & 0 & 4 & 0 & 0 & 0 & 0 & 0 & 3 & 0 & 0 &
+\end{tabular}
+}
 
 \begin{tabular}{@{}p{9.5cm}p{8.5cm}@{}}
 \subsection{Longest Common Subsequence}
@@ -1126,7 +1171,7 @@ VI saFind(string const& m) {
 \subsubsection{Optional counting sort}
 Improves \texttt{saInit()} performance to $O\left(n\log n\right)$
 
-Usually not necessary, about 4x speed up on a 1M string
+Usually not necessary, about 4x speed up on a 1M string. However reduces performance in some cases. Not recommended.
 \begin{lstlisting}
 void csort(int l, int k) {
 	int m = max(300, l+1);
