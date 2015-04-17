@@ -36,6 +36,7 @@
 \begin{itemize}
 \item For g++, \texttt{\#include <bits/stdc++.h>} includes all standard headers.
 \item The constant $\pi$ is usually built-in as \texttt{M\_PI}.
+\item Use \texttt{ios\_base::sync\_with\_stdio(false)} if you are using C++ streams. Big speedup in some cases.
 \end{itemize}
 
 \end{multicols*}
@@ -684,6 +685,97 @@ int count(node *n, int x) {
 }
 \end{lstlisting}
 \end{tabular}
+
+\subsection{Aho-Corasick and Trie}
+
+The Aho-Corasick string matching algorithm locates elements of a finite set of strings (the "dictionary") within an input text. Complexity: Linear in length of patterns plus searched text
+
+\begin{tabular}{@{}p{9cm}p{9cm}@{}}
+\begin{lstlisting}
+const int AS = 256; // alphabet size
+struct node {
+	int match = -1, child[AS] = {},
+	    suffix = 0, dict = 0;
+};
+vector<node> nodes;
+vector<string> dict; // do not add duplicates
+
+void acMatch(string const& s) {
+	for (size_t i = 0, n = 0; i < s.size(); i++) {
+		char c = s[i];
+		while (n && !nodes[n].child[c])
+			n = nodes[n].suffix;
+		n = nodes[n].child[c];
+		for (int m = n; m; m = nodes[m].dict) {
+			if (nodes[m].match >= 0) {
+				// Replace with whatever you want
+				cout << "Matched " << nodes[m].match
+				     << " at " << i << endl;
+			}
+		}
+	}
+}
+\end{lstlisting}
+
+Example usage:
+
+\begin{lstlisting}
+dict = {"bc", "abc"}; // do not add duplicates
+acBuild();
+acMatch("abcabc");
+\end{lstlisting}
+
+Example output:
+
+\begin{lstlisting}
+Matched 1 at 2
+Matched 0 at 2
+Matched 1 at 5
+Matched 0 at 5
+\end{lstlisting}
+&
+\begin{lstlisting}
+void acBuild() {
+	// Build trie
+	nodes.assign(1, node()); // create root
+	for (size_t i = 0; i < dict.size(); i++) {
+		int n = 0;
+		for (char c : dict[i]) {
+			if (!nodes[n].child[c]) {
+				nodes[n].child[c] = nodes.size();
+				nodes.emplace_back();
+			}
+			n = nodes[n].child[c];
+		}
+		nodes[n].match = i;
+	}
+
+	// Build pointers to longest proper suffix and dict
+	queue<int> bfs;
+	bfs.push(0);
+	while (!bfs.empty()) {
+		int n = bfs.front();
+		bfs.pop();
+		for (int i = 0; i < AS; i++)
+		if (nodes[n].child[i]) {
+			int m = nodes[n].child[i],
+			    v = nodes[n].suffix;
+			while (v && !nodes[v].child[i])
+				v = nodes[v].suffix;
+			int s = nodes[v].child[i];
+			if (s != m) {
+				nodes[m].suffix = s;
+				nodes[m].dict = (nodes[s].match >= 0)
+					? s : nodes[s].dict;
+			}
+			bfs.push(m);
+		}
+	}
+}
+\end{lstlisting}
+\end{tabular}
+
+\clearpage
 
 \subsection{KMP and Z-function}
 
