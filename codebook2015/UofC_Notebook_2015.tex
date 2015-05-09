@@ -10,7 +10,7 @@
 \usepackage{multicol}
 \usepackage{parskip}
 \usepackage{tikz}
-\usetikzlibrary{intersections}
+\usetikzlibrary{arrows,intersections}
 \usepackage[compact]{titlesec}
 \lstset{
 	basicstyle=\ttfamily\footnotesize,
@@ -80,15 +80,52 @@ double ptToLine(PX p, PX v, PX x) {
 	return fabs(cp(v, x-p) / abs(v));
 }
 \end{lstlisting}
+\rx{Reflect vector using line normal (unit vectors)}
+\begin{tabular}{@{}p{5cm}p{4cm}@{}}
+Orientation of $\hat n$ does not matter.
+Use \texttt{r = n * n / (-v)}
+&
+\begin{tikzpicture}[baseline={(0,1)}]
+\draw (0,0) -- (3,0);
+\draw[triangle 45-] (1.5,1) -- (1.5,0);
+\draw[-triangle 45] (0.5,1) -- (1.5,0);
+\draw[triangle 45-] (2.5,1) -- (1.5,0);
+\node[right] at (1.3,1.3) {$\hat n$};
+\node[right] at (0.2,1.3) {$\hat v$};
+\node[right] at (2.4,1.3) {$\hat r$};
+\end{tikzpicture}
+\end{tabular}
+
+\rx{Cut convex polygon with straight line}
+\vspace{1mm}
+Returns polygon on left side of $p+\vec vt$. Points can be in CW or CCW order. Do not use with duplicate points.
+\begin{lstlisting}
+vector<PX> pts;
+void cutPolygon(PX p, PX v) {
+	auto P = pts; // make a copy
+	pts.clear();
+	for (int i = 0; i < P.size(); i++) {
+		if (cp(v, P[i]-p) > EP) pts.push_back(P[i]);
+		PX pr = P[(i+1)%P.size()],
+		   ip = lineIntersect(P[i], pr - P[i], p, v);
+		if (ip != BAD && onSeg(P[i], pr, ip))
+			pts.push_back(ip);
+		// remove duplicate points
+		while (pts.size() >= 2 && norm(
+		pts[pts.size()-1] - pts[pts.size()-2]) < EP)
+			pts.pop_back();
+	}
+}
+\end{lstlisting}
+&
 \rx{Angle between vectors ($0$ to $\pi$)}
 \begin{lstlisting}
 Use fabs(arg(x/y))
 \end{lstlisting}
-&
 \rx{Intersection point of two lines}
 \begin{lstlisting}
 PX lineIntersect(PX p1, PX v1, PX p2, PX v2) {
-	// If colinear, pick random point (p1)
+	// If exact same line, pick random point (p1)
 	if (ss(v1, v2)) return ss(v1, p2-p1) ? p1 : BAD; 
 	return p1 + (cp(p2-p1,v2)/cp(v1,v2))*v1;
 }
@@ -128,12 +165,8 @@ bool ptInConvexPolygon(vector<PX> const& P, PX p) {
 \end{lstlisting}
 \end{tabular}
 
-\subsection{Basic 3D Geometry}
-
-TODO
-
 \clearpage
-\subsection{Convex Hull}
+\subsection{Convex Hull (Floating Point)}
 
 \begin{tabular}{@{}p{9cm}p{9cm}@{}}
 Graham's scan. Complexity: $O\left(n\log n\right)$
@@ -179,6 +212,36 @@ pts.clear();
 pts.emplace_back(0.0, 0.0); // put all the points in
 convexHull();
 // pts now contains the convex hull in CCW order, starting from lowest y point
+\end{lstlisting}
+
+\subsection{Convex Hull (Integer)}
+
+Returns convex hull in CCW order starting from lowest x point instead of y point. Complexity: $O\left(n\log n\right)$
+
+Note: Even for floating point, it might be better to use this line sweep method as it is more numerically stable.
+
+\begin{lstlisting}
+typedef long long LL;
+typedef pair<LL,LL> PT;
+vector<PT> pts;
+
+LL ccw(PT a, PT b, PT c) {
+	return (b.first-a.first)*(c.second-a.second) - (b.second-a.second)*(c.first-a.first);
+}
+
+void convexHull() {
+	vector<PT> b, t;
+	sort(begin(pts), end(pts));
+	for (PT pt : pts) {
+		// If you want to keep intermediate colinear points, use < and >
+		while (b.size() >= 2 && ccw(b[b.size()-2], b[b.size()-1], pt) <= 0) b.pop_back();
+		while (t.size() >= 2 && ccw(t[t.size()-2], t[t.size()-1], pt) >= 0) t.pop_back();
+		b.push_back(pt);
+		t.push_back(pt);
+	}
+	pts = b;
+	for (int i = int(t.size()-2); i > 0; i--) pts.push_back(t[i]);
+}
 \end{lstlisting}
 
 \clearpage
@@ -330,14 +393,77 @@ for each edge (u,v) with weight w
 	then graph has negative weight cycle
 \end{lstlisting}
 
-\subsection{Eulerian Path/Cycle}
-
-TODO
-
 \end{tabular}
 
 \clearpage
 
+\subsection{Dijkstra's}
+
+Remember to consider using Floyd-Warshall or $O\left(V^2\right)$ version of Dijkstra's. Complexity: $O\left(\left(E+V\right)\log V\right)$
+
+\begin{lstlisting}
+typedef pair<int,int> PT;
+typedef vector<PT> VPT;
+vector<VPT> adj;
+
+int dist[N]; // N = number of nodes
+
+priority_queue<PT, vector<PT>, greater<PT>> dja;
+dja.emplace(0, START_NODE);
+fill(dist, dist+N, INT_MAX);
+dist[START_NODE] = 0;
+while (!dja.empty()) {
+	PT pt = dja.top();
+	dja.pop();
+	if (pt.first != dist[pt.second]) continue;
+	for (PT ps : adj[pt.second]) {
+		if (pt.first + ps.second < dist[ps.first]) {
+			dist[ps.first] = pt.first + ps.second;
+			dja.emplace(dist[ps.first], ps.first);
+		}
+	}
+}
+\end{lstlisting}
+
+\subsection{Eulerian Cycle}
+
+This non-recursive version works with large graphs. Complexity: $O(E\log E)$
+
+\begin{lstlisting}
+vector<multiset<int>> adj;
+vector<int> cyc;
+
+void euler(int n) {
+	stack<int> stk;
+	stk.push(n);
+	while (!stk.empty()) {
+		n = stk.top();
+		if (adj[n].empty()) {
+			cyc.push_back(n);
+			stk.pop();
+		} else {
+			auto it = adj[n].begin();
+			int m = *it;
+			adj[n].erase(it);
+			adj[m].erase(adj[m].find(n));
+			stk.push(m);
+		}
+	}
+}
+\end{lstlisting}
+
+Example usage:
+\begin{lstlisting}
+adj[0].insert(1); adj[1].insert(0); // edge between 0 and 1
+adj[0].insert(1); adj[1].insert(0); // another one
+adj[0].insert(0); adj[0].insert(0); // loop on 0
+cyc.clear();
+euler(0); // find eulerian cycle starting from 0
+// cyc contains complete cycle including endpoints
+// e.g. 0, 0, 1, 0
+\end{lstlisting}
+
+\clearpage
 \vspace*{-3em}
 \begin{tabular}{@{}p{7.5cm}p{10.5cm}@{}}
 \subsection{Max Bipartite Matching}
@@ -421,6 +547,10 @@ Dinic's algorithm.
 
 Complexity: $O\left(\min\left(V^2E, fE\right)\right)$ where $f$ is the maximum flow
 
+For unit capacities: $O\left(\min\left(V^{2/3}, E^{1/2}\right)E\right)$
+
+For bipartite matching: $O\left(\sqrt VE\right)$
+
 \begin{lstlisting}
 typedef long long LL;
 const int SOURCE=0, SINK=1; // change if necessary
@@ -435,10 +565,7 @@ vector<int> lvl, ptr;
 LL totalflow;
 
 LL dfs(int n, LL f) {
-	if (n == SINK) {
-		totalflow += f;
-		return f;
-	}
+	if (n == SINK) { totalflow += f; return f; }
 	if (lvl[n] == lvl[SINK]) return 0;
 	while (ptr[n] < (int)adj[n].size()) {
 		edge& e = adj[n][ptr[n]];
@@ -474,8 +601,7 @@ bool runMaxFlow() {
 	return true;
 }
 void initMaxFlow(int nodes) {
-	totalflow = 0;
-	adj.clear(); adj.resize(nodes);
+	totalflow = 0; adj.clear(); adj.resize(nodes);
 }
 void addEdge(int a, int b, LL w) {
 	adj[a].push_back(edge{b, (int)adj[b].size(), w});
