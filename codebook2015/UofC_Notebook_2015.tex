@@ -397,6 +397,10 @@ for each edge (u,v) with weight w
 
 \clearpage
 
+\subsection{Cycle Detection in Directed Graph}
+
+We can keep track of vertices currently in recursion stack of function for DFS traversal. If we reach a vertex that is already in the recursion stack, then there is a cycle in the graph.
+
 \subsection{Dijkstra's}
 
 Remember to consider using Floyd-Warshall or $O\left(V^2\right)$ version of Dijkstra's. Complexity: $O\left(\left(E+V\right)\log V\right)$
