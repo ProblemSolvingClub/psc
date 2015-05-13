@@ -244,8 +244,6 @@ void convexHull() {
 }
 \end{lstlisting}
 
-\clearpage
-
 \section{Graphs}
 
 \vspace*{-2em}
@@ -310,6 +308,56 @@ if (run2SAT()) {
 	// truth values are in truthValues[0 to N-1]
 }
 \end{lstlisting}
+&
+\subsection{2-SAT with Preferences}
+
+\begin{lstlisting}
+typedef vector<int> VI;
+struct Variable {
+	Variable() : val(-1) {} //-1 means "not set"
+	VI imply[2];
+	int val;
+};
+typedef vector<Variable> VV;
+bool assign(VV& vars, int x, int v) {
+	if vars[x].val >= 0) return (vars[x].val == v);
+	vars[x].val = v;
+	for(int k = 0; k < int(vars[x].imply[v].size()); ++k) {
+		int y = vars[x].imply[v][k];
+		int yv = (y<0)?0:1;
+		if(!assign(vars, abs(y)-1, yv)) {
+			vars[x].val = -1;
+			return false;
+		}
+	}
+	return true;
+}
+//prefset[v] shows that we want v to be 
+// true(1), false(0), no pref(-1)
+//eq is the set of clauses (4, -2) means x4 or ~x2 (1-based)
+bool twosat(int n, const vector<pii>& eq, 
+const vector<int>& prefset, vector<bool>& res) {
+	VV vars(n); res.clear();
+	for(int i = 0; i < eq.size(); ++i) {
+		int a = eq[i].first, b = eq[i].second;
+		if(a < 0) vars[-a-1].imply[1].push_back(b);
+		if(a > 0) vars[a-1].imply[0].push_back(b);
+		if(b < 0) vars[-b-1].imply[1].push_back(a);
+		if(b > 0) vars[b-1].imply[0].push_back(a);
+	}
+	for(int x = 0; x < n; ++x) {
+		VV oldvars(vars);
+		if(prefset[x] != 0) if(assign(vars, x, 1))
+			continue;
+		vars = oldvars;
+		if(prefset[x] != 1) if(!assign(vars, x, 0))
+			return false;
+	}
+	for(int i = 0; i < n; i++)
+		res.push_back(vars[i].val==1);
+	return true;
+}
+\end{lstlisting}
 
 \subsection{Floyd-Warshall}
 
@@ -325,7 +373,10 @@ for k from 1 to V
 			if dist[i][j] > dist[i][k] + dist[k][j]
 				dist[i][j] = dist[i][k] + dist[k][j]
 \end{lstlisting}
-&
+\end{tabular}
+\clearpage
+\vspace*{-3em}
+\begin{tabular}{@{}p{10cm}p{7.5cm}@{}}
 \subsection{Articulation Points and Bridges}
 Graph does not need to be connected. Tested only on bidirectional (undirected) graphs. Complexity: $O\left(V + E\right)$
 
@@ -373,6 +424,32 @@ dfs_low.resize(N); // initialization not necessary
 for (int n = 0; n < N; n++) dfs(n, n, -1);
 \end{lstlisting}
 
+\subsection{Lowest Common Ancestor}
+Tarjan's offline algorithm. Uses disjoint set.
+
+\begin{lstlisting}
+vector<int> child[V], query[V]; /*query[u] are all 
+vertices v which we want to know LCA(u, v)*/
+int qres[V][V]; //query results
+int ancestor[V];
+bool vis[V]; //initially false
+void LCA(int u) {
+	make_set(u);
+	ancestor[u] = u;
+	for(int i = 0; i < child[u].size(); i++) {
+		LCA(child[u][i]);
+		union_set(u, child[u][i]);
+		ancestor[find_set(u)] = u;
+	}
+	vis[u] = true;
+	for(int i = 0; i < query[u].size(); i++) {
+		if(vis[query[u][i]])
+			qres[u][query[u][i]] = qres[query[u][i]][u] = 
+				ancestor[find_set(query[u][i])];
+	}
+}
+\end{lstlisting}
+&
 \subsection{Bellman-Ford}
 
 Consider terminating the loop if no weight was modified in the loop. Complexity: $O(VE)$
